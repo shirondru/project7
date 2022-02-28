@@ -239,7 +239,9 @@ class NeuralNetwork:
             nl_transform: ArrayLike
                 Activation function output.
         """
-        pass
+
+
+        return 1/(1+np.exp(-Z))
 
     def _relu(self, Z: ArrayLike) -> ArrayLike:
         """
