@@ -29,7 +29,24 @@ def one_hot_encode_seqs(seq_arr: List[str]) -> ArrayLike:
                 G -> [0, 0, 0, 1]
             Then, AGA -> [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
     """
-    pass
+
+    ## A will be encoded in 0th column of matrix, T in 1th column, etc. This matrix will then be flattened
+    AA_map = {
+        "A": 0,
+        "T": 1,
+        "C": 2,
+        "G": 3
+    }
+    one_hot_encodings = []
+    #loop through each sequence in seq_arr and produce a flattened one-hot-encoding
+    for seq in seq_arr:
+
+        shape = (len(seq), 4)
+        one_hot_matrix = np.zeros(shape)  # initialize matrix filled with 0s. 4 columns and one row per nucleotide in the sequence
+        for row, nucleotide in enumerate(seq):
+            one_hot_matrix[row, AA_map[nucleotide]] = 1
+        one_hot_encodings.append(one_hot_matrix.flatten())
+    return one_hot_encodings
 
 
 def sample_seqs(
@@ -51,4 +68,22 @@ def sample_seqs(
         sampled_labels: List[bool]
             List of labels for the sampled sequences
     """
-    pass
+
+
+
+        pos_class_indices = np.where(labels)
+        neg_class_indices = np.where(~np.array(labels))
+        desired_class_size = abs(len(labels) - sum(labels))
+
+    #if True/positive class is the minority class, upsample this class (i.e, with replacement) to compensate for imbalance
+    #Otherwise, sample the negative class with replacement
+    if sum(labels) / len(labels) <= 0.5:
+        upsampled_indices = np.random.choice(a = pos_class_indices,size = desired_class_size,replace=True) #sample pos class with replacement
+        downsampled_indices = np.random.choice(a = neg_class_indices,size = desired_class_size,replace=False) #downsample neg class
+
+    else:
+        upsampled_indices = np.random.choice(a = neg_class_indices,size = desired_class_size,replace=True) #sample neg class with replacement
+        downsampled_indices = np.random.choice(a = pos_class_indices,size = desired_class_size,replace=False) #downsample pos class
+
+    sampled_indices = list(upsampled_indices) + list(downsampled_indices)
+    return seqs[sampled_indices],labels[sampled_indices]
