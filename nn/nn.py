@@ -28,6 +28,8 @@ class NeuralNetwork:
             Max number of epochs for training.
         loss_function: str
             Name of loss function.
+        reduction: str
+            Either "mean" or "sum". The aggregation method for the loss function.
 
     Attributes:
         arch: list of dicts
@@ -39,7 +41,8 @@ class NeuralNetwork:
                  seed: int,
                  batch_size: int,
                  epochs: int,
-                 loss_function: str):
+                 loss_function: str,
+                 reduction:str):
         # Saving architecture
         self.arch = nn_arch
         # Saving hyperparameters
@@ -50,6 +53,8 @@ class NeuralNetwork:
         self._batch_size = batch_size
         # Initializing the parameter dictionary for use in training
         self._param_dict = self._init_params()
+        assert reduction.upper() in ["MEAN","SUM"],f"Desired reduction method {reduction.upper()} must be one of ["MEAN","SUM"]"
+        self._reduction = reduction
 
     def _init_params(self) -> Dict[str, ArrayLike]:
         """
@@ -363,8 +368,19 @@ class NeuralNetwork:
                 Average loss over mini-batch.
         """
         m = len(y)
-        loss = ((y.dot(np.log(y_hat))) + ((1 - y).dot(np.log(1 - y_hat)))) * (-1 / m)
-        return loss
+        #size of the loss is (n_observations, n_features_in_output_layer)
+        loss = -(y*np.log(y_hat) + ((1-y) * np.log(1-y_hat)))
+
+
+        #aggregate the loss across all features, to get an aggregated loss per observation
+        #then aggregate the loss across all observations to get a final scalar value
+        if self._reduction.upper() == "SUM":
+            total_loss = np.sum(loss,axis=1)
+            total_loss = np.sum(total_loss,axis = 0)
+        elif self._reduction.upper() == "MEAN":
+            total_loss = np.mean(loss, axis=1)
+            total_loss = np.mean(total_loss, axis=0)
+        return total_loss
     def _binary_cross_entropy_backprop(self, y: ArrayLike, y_hat: ArrayLike) -> ArrayLike:
         """
         Binary cross entropy loss function derivative.
