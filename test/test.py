@@ -6,6 +6,7 @@
 # TODO: Write your test functions and associated docstrings below.
 
 def test_forward():
+    #use cache to test that each matrix in forward pass has correct dimensions
     pass
 
 
