@@ -186,6 +186,34 @@ class NeuralNetwork:
         """
         This method is responsible for the backprop of the whole fully connected neural network.
 
+        ****What Backpropagation is doing****:
+        Goal of backpropagation is to identify what adjustment to bias and weight terms will cause
+        quickest decrease in the loss/cost/error function. These adjustments will be applied after scaling with a learning rate
+        via gradient descent, to iteratively adjust the weights and biases in small steps to ensure a local minimum is not skipped.
+
+        With respect to the final layer of the network, the loss function is dependent on y and a(L).
+        y is the ground truth and not adjustable -- instead backpropagation needs to adjust a(L) to minimize the loss function.
+        But a(L) cannot be adjusted directly, as it is dependent on z(L) as a(L) = f(z(L)) where f(x) is an activation function.
+        z(L) = w(L)@a(L-1) + b(L). For all layers l = 1,2,...L, w(l) and b(l) are the only variables we have control over, so these are the variables
+        backpropagation will attempt to adjust to minimize the loss function.
+
+        Therefore we want to identify how sensitive the loss function is to small changes in each weight w(l) and bias b(l).
+        Focusing on the weight in layer L, a small change in w(L) will cause some small change in z(L) which will in turn cause
+        small small change in a(L) and therefore a small change in J, the loss function.
+        Therefore, the derivative of J with respect to w(L) (dJ/dw(L), which is the degree to which a small change in w(L) will
+        affect J equals dJ/da(L) * da(L)/dz(L) * dz(L)/dw(L). This chain rule expression mathematically describes
+        the relationship I just mentioned; the loss function is sensitive to small changes in a(L) which in turn is sensitive to small
+        changes in dz(L) which in turn is senstive to small changes in dw(L). Note that, while the first two terms in this chain rule expression
+        are element-wise multiplications, the result of that product is in fact matrix multiplied with dz(L)/dw(L) because the loss function includes
+        a summation which is incorporated through that matrix multiplication.
+
+        Each of those derivatives are calculated and used to find dJ/dw(L). dJ/db(L) is found in a similar manner.
+        Those derivatives are stored as they describe how a small change in w(L) or b(L) affect J. Therefore they can be used in gradient descent.
+        To find dw(L-1) and db(L-1) the first two terms in the chain-rule expression above are re-used in a longer chain rule expression
+        that follows a similar pattern. Once all dw(l) and db(l) are found, they will be used to update all w and b via gradient descent.
+
+
+
         Args:
             y (array-like):
                 Ground truth labels.
