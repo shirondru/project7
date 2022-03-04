@@ -146,6 +146,23 @@ def test_sample_seqs():
 
 def test_fit():
     """
-    Test that training loss approaches 0
+    Because the loss is being minimized via gradient descent it is expected that the loss (with respect to the training data)
+    will approach 0 as number of gradient descent iterations increases. Test that is the case by asserting the loss from the 1st third of the data
+    is greater than the loss from the middle third of the data, which is greater than the loss from the last third of the data.
 
     """
+
+    nn = NeuralNetwork(nn_arch=[{'input_dim': 64, 'output_dim': 16, 'activation': 'relu'},
+                                {'input_dim': 16, 'output_dim': 1, 'activation': 'sigmoid'}],
+                       lr=0.01, batch_size=20, seed=42, epochs=50, loss_function=
+                       'cross_entropy')
+    X = np.random.randn(1000, 64)
+    y = np.random.randint(low=0, high=2, size=1000)  # one hot encoded 8 dim y vector with 10000 obs
+    X_train, X_test, y_train, y_test = train_test_split(X, y)
+
+    train_loss, _ = nn.fit(X_train, y_train, X_test, y_test)
+
+    early_losses = train_loss[0:(nn._batch_size // 3)]  # loss history from first 1/3 of data
+    middle_losses = train_loss[(nn._batch_size // 3): 2 * (nn._batch_size // 3)]  # loss history from second 1/3 of data
+    late_losses = train_loss[2 * (nn._batch_size // 3):]  # loss history from last 1/3 of data
+    assert np.mean(early_losses) > np.mean(middle_losses) > np.mean(late_losses), "Training loss is not approaching 0!"
