@@ -142,3 +142,10 @@ def test_one_hot_encode():
 
 def test_sample_seqs():
     pass
+
+
+def test_fit():
+    """
+    Test that training loss approaches 0
+
+    """
