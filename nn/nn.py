@@ -51,6 +51,10 @@ class NeuralNetwork:
         self._epochs = epochs
 
         assert loss_function == 'mean_squared_error' or "cross_entropy" in loss_function, "loss_function must be either 'mean_squared_error' or contain the string 'cross_entropy'"
+        if "cross_entropy" in loss_function:
+            assert nn_arch[-1]['output_dim'] == 1, "This Neural Network only handles binary classification!"
+        if nn_arch[-1]['output_dim'] > 1:
+            assert "cross_entropy" not in loss_function, "Multi-Class Classification is not supported"
         self._loss_func = loss_function
 
         self._batch_size = batch_size
@@ -301,7 +305,10 @@ class NeuralNetwork:
             per_epoch_loss_val: List[float]
                 List of per epoch loss for validation set.
         """
-        assert self.arch[-1]['output_dim'] == y.shape[1],f"Number of output layer neurons does not equal number of classes implied by (i.e, number of columns in) y."
+        if nn.arch[-1]['output_dim'] == 1:
+            assert y_train.ndim == 1 and y_val.ndim == 1, "shape of y_train and/or y_val is not 1D!"
+        else:
+            assert y_train.shape[1] == nn.arch[-1]['output_dim'] and y_val.shape[1] == nn.arch[-1]['output_dim'], "Number of columns in y_train and y_val different than output layer!"
         num_batches = int(X_train.shape[0] / self._batch_size)
         per_epoch_loss_train = []
         per_epoch_loss_val = []
@@ -310,8 +317,8 @@ class NeuralNetwork:
             #shuffle data for each epoch
             ind_list = np.array(list(range(X_train.shape[0])))
             np.random.shuffle(ind_list)
-            X_train = X_train[ind_list,:]
-            y_train = y_train[ind_list,:]
+            X_train = X_train[ind_list,]
+            y_train = y_train[ind_list,]
 
             #create array containing all batches
             X_batch = np.array_split(X_train, num_batches)
@@ -493,45 +500,6 @@ class NeuralNetwork:
         #which takes care of the summation across observations
         return -(y*(1/y_hat) - ((1-y)*(1/(1-y_hat)))) #same shape as y or yhat
 
-    def _multi_class_cross_entropy(self, y: ArrayLike, y_hat: ArrayLike) -> float:
-        """
-        Categorical cross entropy loss function, for when the number of classes >2.
-        This expects labels to be provided in a one-hot representation
-
-        Args:
-            y_hat: ArrayLike
-                Predicted output.
-            y: ArrayLike
-                Ground truth output.
-
-        Returns:
-            loss: float
-                Average loss over mini-batch.
-        """
-
-        # sum the loss across each class to get one value per observation
-        loss_vector = np.sum(-(y*np.log(y_hat) + ((1-y) * np.log(1-y_hat))),axis = 1) #dim: [batch_size,]
-        return np.mean(loss_vector) #return mean loss across observations
-
-    def _multi_class_cross_entropy_backprop(self, y: ArrayLike, y_hat: ArrayLike) -> ArrayLike:
-        """
-        multi class cross entropy loss function derivative.
-
-        Args:
-            y_hat: ArrayLike
-                Predicted output.
-            y: ArrayLike
-                Ground truth output.
-
-        Returns:
-            dA: ArrayLike
-                partial derivative of loss with respect to A matrix.
-        """
-        # not taking sum here as this derivative will be matrix multiplied to dZcurr/dWcurr
-        # which takes care of the summation across observations
-        return -(y*(1/y_hat) - ((1-y)*(1/(1-y_hat)))) #same shape as y or yhat
-
-
     def _mean_squared_error(self, y: ArrayLike, y_hat: ArrayLike) -> float:
         """
         Mean squared error loss.
@@ -583,10 +551,8 @@ class NeuralNetwork:
                 Average loss of mini-batch.
         """
 
-        if "cross_entropy" in self._loss_func and y.shape[1] == 1:
+        if "cross_entropy" in self._loss_func:
             return self._binary_cross_entropy(y, y_hat)
-        elif "cross_entropy" in self._loss_func and y.shape[1] > 1:
-            return self._multi_class_cross_entropy(y, y_hat)
         elif "mean_squared_error" == self._loss_func:
             return self._mean_squared_error(y, y_hat)
 
@@ -601,9 +567,7 @@ class NeuralNetwork:
             dA (array-like): partial derivative of loss with respect
                 to output matrix.
         """
-        if "cross_entropy" in self._loss_func and y.shape[1] == 1:
+        if "cross_entropy" in self._loss_func:
             return self._binary_cross_entropy_backprop(y, y_hat)
-        elif "cross_entropy" in self._loss_func and y.shape[1] > 1:
-            return self._multi_class_cross_entropy_backprop(y, y_hat)
         elif "mean_squared_error" == self._loss_func:
             return self._mean_squared_error_backprop(y, y_hat)
