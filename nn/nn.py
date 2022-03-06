@@ -312,7 +312,7 @@ class NeuralNetwork:
         if y_train.ndim == 1:
             y_train = y_train.reshape(y_train.shape[0],1) #ensure y is (n,1) and not (n,) for proper downstream calculations
             y_val = y_val.reshape(y_val.shape[0], 1)
-            
+
         num_batches = int(X_train.shape[0] / self._batch_size)
         per_epoch_loss_train = []
         per_epoch_loss_val = []
