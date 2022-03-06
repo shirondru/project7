@@ -50,8 +50,8 @@ def one_hot_encode_seqs(seq_arr: List[str]) -> ArrayLike:
 
 
 def sample_seqs(
-        seqs: List[str]
-        labels: List[bool]) -> Tuple[List[seq], List[bool]]:
+        seqs: List[str],
+        labels: List[bool]) -> Tuple[List[str], List[bool]]:
     """
     This function should sample your sequences to account for class imbalance. 
     Consider this as a sampling scheme with replacement.
@@ -71,9 +71,9 @@ def sample_seqs(
 
 
 
-        pos_class_indices = np.where(labels)
-        neg_class_indices = np.where(~np.array(labels))
-        desired_class_size = abs(len(labels) - sum(labels))
+    pos_class_indices = np.where(labels)
+    neg_class_indices = np.where(~np.array(labels))
+    desired_class_size = abs(len(labels) - sum(labels))
 
     #if True/positive class is the minority class, upsample this class (i.e, with replacement) to compensate for imbalance
     #Otherwise, sample the negative class with replacement

@@ -3,6 +3,8 @@
 # Import necessary dependencies here
 import numpy as np
 import pytest
+from nn import NeuralNetwork, one_hot_encode_seqs, sample_seqs
+from sklearn.model_selection import train_test_split
 
 # TODO: Write your test functions and associated docstrings below.
 
@@ -59,7 +61,7 @@ def test_single_forward():
     """
     np.random.seed(42)
     ### initialize NN and small X and y matrices
-    nn = NeuralNetwork(nn_arch=[{'input_dim': 4, 'output_dim': 2, 'activation': 'sigmoid'}],
+    nn = NeuralNetwork(nn_arch=[{'input_dim': 4, 'output_dim': 1, 'activation': 'sigmoid'}],
                        lr=0.01, batch_size=10, seed=42, epochs=5, loss_function=
                        'cross_entropy')
 
@@ -69,12 +71,12 @@ def test_single_forward():
                               A_prev=X,
                               activation=nn.arch[0]['activation'])
 
-    manual_Z = np.array([[-0.33925335, -0.03260924],
-                         [-0.14259122, -0.02802039],
-                         [-0.01198117,  0.32271522]])
-    manual_A = np.array([[0.41599086, 0.49184841],
-                         [0.46441247, 0.49299536],
-                         [0.49700474, 0.57998583]])
+    manual_Z = np.array([[-0.07867661],
+                         [ 0.01662859],
+                         [-0.28527714]])
+    manual_A = np.array([[0.48034099],
+                         [0.50415705],
+                         [0.42916049]])
 
     assert np.allclose(A,manual_A),"Activation Matrix from single forward pass different from expected!"
     assert np.allclose(Z, manual_Z), "Z Matrix from single forward pass different from expected!"
@@ -96,8 +98,8 @@ def test_forward_dimensions():
     output, cache = nn.forward(X)
     for idx in range(len(nn.arch)):
         layer_idx = idx + 1
-        expected_output_dim = nn.arch['output_dim'] #the number of neurons expected after a forward pass through this layer
-        true_output_dim = cache['Z' + + str(layer_idx)].shape[1] #the number of neurons/features after a forward pass through this layer
+        expected_output_dim = nn.arch[idx]['output_dim'] #the number of neurons expected after a forward pass through this layer
+        true_output_dim = cache['Z' + str(layer_idx)].shape[1] #the number of neurons/features after a forward pass through this layer
         assert expected_output_dim == true_output_dim, f"Dimensions of linear transformed matrix in layer {layer_idx} is wrong!"
     assert output.shape == y.shape, "Dimensions of y_hat are different from y_true"
 def test_single_backprop():
@@ -160,8 +162,9 @@ def test_fit():
     y = np.random.randint(low=0, high=2, size=1000)  # one hot encoded 8 dim y vector with 10000 obs
     X_train, X_test, y_train, y_test = train_test_split(X, y)
 
-    train_loss, _ = nn.fit(X_train, y_train, X_test, y_test)
+    train_loss, _ = nn.fit(X_train, y_train, X_test, y_test) #get mean training loss per training epoch
 
+    #test that training loss decreases over epochs during gradient descent
     early_losses = train_loss[0:(nn._batch_size // 3)]  # loss history from first 1/3 of data
     middle_losses = train_loss[(nn._batch_size // 3): 2 * (nn._batch_size // 3)]  # loss history from second 1/3 of data
     late_losses = train_loss[2 * (nn._batch_size // 3):]  # loss history from last 1/3 of data
