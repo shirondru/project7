@@ -478,6 +478,9 @@ class NeuralNetwork:
             loss: float
                 Average loss over mini-batch.
         """
+        #adjust any predicted values of 0 or 1 slightly to avoid errors in log calculation
+        y_hat[y_hat == 0] = 0 + 1e-7
+        y_hat[y_hat == 1] = 1 - 1e-7
 
         #return mean (across observations) binary cross entropy loss
         return np.mean(-(y*np.log(y_hat) + ((1-y) * np.log(1-y_hat)))) #scalar
@@ -496,6 +499,9 @@ class NeuralNetwork:
             dA: ArrayLike
                 partial derivative of loss with respect to A matrix.
         """
+        # adjust any predicted values of 0 or 1 slightly to avoid errors in log calculation
+        y_hat[y_hat == 0] = 0 + 1e-7
+        y_hat[y_hat == 1] = 1 - 1e-7
 
         #not taking sum here as this derivative will be matrix multiplied to dZcurr/dWcurr
         #which takes care of the summation across observations
