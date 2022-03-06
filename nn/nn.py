@@ -305,10 +305,7 @@ class NeuralNetwork:
             per_epoch_loss_val: List[float]
                 List of per epoch loss for validation set.
         """
-        if self.arch[-1]['output_dim'] == 1:
-            assert y_train.ndim == 1 and y_val.ndim == 1, "shape of y_train and/or y_val is not 1D!"
-        else:
-            assert y_train.shape[1] == self.arch[-1]['output_dim'] and y_val.shape[1] == self.arch[-1]['output_dim'], "Number of columns in y_train and y_val different than output layer!"
+
         if y_train.ndim == 1:
             y_train = y_train.reshape(y_train.shape[0],1) #ensure y is (n,1) and not (n,) for proper downstream calculations
             y_val = y_val.reshape(y_val.shape[0], 1)
@@ -339,7 +336,7 @@ class NeuralNetwork:
 
 
                 y_hat, _ = self.forward(X_val) #get prediction with validation data
-                batch_val_loss.append(self._loss_function(y_val, y_hat)) #sore validation loss
+                batch_val_loss.append(self._loss_function(y_val, y_hat)) #store validation loss
 
             #save mean train and val loss across batches for this epoch
             per_epoch_loss_train.append(np.mean(batch_train_loss))
