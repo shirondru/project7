@@ -9,6 +9,11 @@ readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
+dependencies = [
+	"pytest>=6.2.5",
+	"numpy>=1.20.3",
+	"scikit_learn>=1.0.1"
+]
 
 [project.urls]
 Home = "https://github.com/shirondru/project7/"
