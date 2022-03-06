@@ -132,7 +132,18 @@ def test_mean_squared_error():
     expected_MSE = 1.51
 
     assert class_MSE == expected_MSE, "MSE calcualted by NN different than expected!"
+    #instantiate random NN in order to call it's _mean_squared_error method
+    nn = NeuralNetwork(nn_arch=[{'input_dim': 68, 'output_dim': 16, 'activation': 'relu'},
+                                {'input_dim': 16, 'output_dim': 1, 'activation': 'sigmoid'}],
+                       lr=lr, batch_size=1, seed=42, epochs=5, loss_function=
+                       'mean_squared_error')
 
+    y = np.array([0, 1, 2])
+    y_pred = np.array([3, 4, 5])
+    expected_output = 4.5
+
+    real_output = nn._mean_squared_error(y,y_pred)
+    assert expected_output == real_output, "MSE is returning different values than expected!"
 
 def test_mean_squared_error_backprop():
     pass
