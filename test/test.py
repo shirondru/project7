@@ -139,7 +139,13 @@ def test_mean_squared_error_backprop():
 
 
 def test_one_hot_encode():
-    pass
+    """
+    Test one hot encode func is working as expected by asserting it gives the right output
+    for a very simple case
+    """
+    expected_output = np.array([1., 0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0.])
+    actual_output = one_hot_encode_seqs(['AGA'])
+    assert np.stack(actual_output,axis=0) == expected_output, "one hot encode giving unexpected result"
 
 
 def test_sample_seqs():
