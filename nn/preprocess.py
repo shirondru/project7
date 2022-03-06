@@ -51,7 +51,8 @@ def one_hot_encode_seqs(seq_arr: List[str]) -> ArrayLike:
 
 def sample_seqs(
         seqs: List[str],
-        labels: List[bool]) -> Tuple[List[str], List[bool]]:
+        labels: List[bool],
+        random_state: int) -> Tuple[List[str], List[bool]]:
     """
     This function should sample your sequences to account for class imbalance. 
     Consider this as a sampling scheme with replacement.
@@ -61,18 +62,20 @@ def sample_seqs(
             List of all sequences.
         labels: List[bool]
             List of positive/negative labels
+        random_state: int
+            Numpy random seed to be used
 
     Returns:
-        sampled_seqs: List[str]
+        sampled_seqs: ArrayLike
             List of sampled sequences which reflect a balanced class size
-        sampled_labels: List[bool]
+        sampled_labels: Array[bool]
             List of labels for the sampled sequences
     """
 
 
-
-    pos_class_indices = np.where(labels)
-    neg_class_indices = np.where(~np.array(labels))
+    np.random.seed(random_state)
+    pos_class_indices = np.where(labels)[0]
+    neg_class_indices = np.where(~np.array(labels))[0]
     desired_class_size = abs(len(labels) - sum(labels))
 
     #if True/positive class is the minority class, upsample this class (i.e, with replacement) to compensate for imbalance
@@ -86,4 +89,9 @@ def sample_seqs(
         downsampled_indices = np.random.choice(a = pos_class_indices,size = desired_class_size,replace=False) #downsample pos class
 
     sampled_indices = list(upsampled_indices) + list(downsampled_indices)
-    return seqs[sampled_indices],labels[sampled_indices]
+    sampled_seqs = [seqs[i] for i in sampled_indices] #list of seqs after upsampling
+    sampled_seqs = np.stack(sampled_seqs,axis=0)  #convert list of np arrays back into a 2D array
+
+    sampled_labels = [labels[i] for i in sampled_indices] #list of corresponding labels after upsampling
+    sampled_labels = np.array(sampled_labels)
+    return sampled_seqs,sampled_labels
