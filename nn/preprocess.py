@@ -49,6 +49,46 @@ def one_hot_encode_seqs(seq_arr: List[str]) -> ArrayLike:
     return one_hot_encodings
 
 
+def clip_sample_seqs(
+        pos_seqs: List[str],
+        neg_seqs: List[str])-> Tuple[List[str], List[str]]:
+    """
+    Takes two lists of sequences, where the sequences in list A are longer
+    than those in list B. This function will clip the sequences in list A to more smaller sequences
+    of the same size as in list B
+    Args:
+        pos_seqs: List[str]
+            List of sequences from the positive class
+        neg_seqs: List[str]
+            List of sequences from the negative class
+
+    Returns:
+        pos_seqs: List[str]
+            List of sequences from the positive class (each seq is of same length as neg_seqs)
+        neg_seqs: List[str]
+            List of sequences from the negative class (each seq is of same length as pos_seqs)
+
+    """
+
+    len_pos_seqs = len(pos_seqs[0]) #return length of first element in pos_seqs. Assume rest of elements are same length
+    len_neg_seqs = len(neg_seqs[0]) #return length of first element in neg_seqs. Assume rest of elements are same length
+
+
+    if len_pos_seqs < len_neg_seqs:
+        clipped_neg_seqs = []
+        for neg_seq in neg_seqs:
+            clipped_seq = [neg_seq[i:i + len_pos_seqs] for i in range(0, len(neg_seq), len_pos_seqs)]
+            clipped_neg_seqs.append([x for x in clipped_seq if len(x) ==len_pos_seqs ])
+        flat_clipped_neg_seqs = [item for sublist in clipped_neg_seqs for item in sublist] #flatten list
+        return pos_seqs, flat_clipped_neg_seqs
+    else:
+        clipped_pos_seqs = []
+        for pos_seq in pos_seqs:
+            clipped_seq = [pos_seq[i:i + len_neg_seqs] for i in range(0, len(pos_seq), len_neg_seqs)]
+            clipped_pos_seqs.append([x for x in clipped_seq if len(x) == len_neg_seqs])
+        flat_clipped_pos_seqs = [item for sublist in clipped_pos_seqs for item in sublist]  # flatten list
+        return flat_clipped_pos_seqs, neg_seqs
+
 def sample_seqs(
         seqs: List[str],
         labels: List[bool],
@@ -71,7 +111,7 @@ def sample_seqs(
         sampled_labels: Array[bool]
             List of labels for the sampled sequences
     """
-
+    #get
 
     np.random.seed(random_state)
     pos_class_indices = np.where(labels)[0]
