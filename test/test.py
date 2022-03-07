@@ -146,9 +146,18 @@ def test_mean_squared_error():
     assert expected_output == real_output, "MSE is returning different values than expected!"
 
 def test_mean_squared_error_backprop():
-    pass
+    # instantiate random NN in order to call it's _mean_squared_error method
+    nn = NeuralNetwork(nn_arch=[{'input_dim': 68, 'output_dim': 16, 'activation': 'relu'},
+                                {'input_dim': 16, 'output_dim': 1, 'activation': 'sigmoid'}],
+                       lr=lr, batch_size=1, seed=42, epochs=5, loss_function=
+                       'mean_squared_error')
 
+    y = np.array([0, 1, 2])
+    y_pred = np.array([3, 4, 5])
+    expected_output = np.array([1,1,1])
+    real_output = nn._mean_squared_error_backprop(y,y_pred)
 
+    assert np.allclose(expected_output,real_output),"Mean Squared Error Derivative giving unexpected result!"
 def test_one_hot_encode():
     """
     Test one hot encode func is working as expected by asserting it gives the right output
@@ -160,11 +169,22 @@ def test_one_hot_encode():
 
 
 def test_sample_seqs():
+    """
+    sample_seqs will upsample the minority class until it has been resampled with replacement
+    until the length of the minority class equals the length of the majority class.
+    Assert that is true here with a very simple test case.
+    """
     labels = [True,False,False,False]
     seqs = ["ATGC","AAAA","TTTT","CCCC"]
 
     X, y = sample_seqs(seqs, labels, random_state=42)
 
+    #sample_seqs will upsample the minority class 3x
+    #the expected output will therefore have the single minority class element repeated 3x
+    # and all elements of the majority class once.
+    #assert that is the case
+    expected_output = seqs[0] * 3 + seqs[1:]
+    assert all(expected_output==X),"sample_seqs gave wrong result!"
 
 def clip_sample_seqs():
     """
