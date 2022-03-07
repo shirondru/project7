@@ -156,12 +156,32 @@ def test_one_hot_encode():
     """
     expected_output = np.array([1., 0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0.])
     actual_output = one_hot_encode_seqs(['AGA'])
-    assert np.stack(actual_output,axis=0) == expected_output, "one hot encode giving unexpected result"
+    assert np.allclose(np.stack(actual_output,axis=0), expected_output), "one hot encode giving unexpected result"
 
 
 def test_sample_seqs():
-    pass
+    labels = [True,False,False,False]
+    seqs = ["ATGC","AAAA","TTTT","CCCC"]
 
+    X, y = sample_seqs(seqs, labels, random_state=42)
+
+
+def clip_sample_seqs():
+    """
+    Test clip_sample_seqs properly turns longer sequences from one class
+    to smaller sequences of equal size to those in the other class with a simple case.
+
+
+    """
+    seq1 = ["ATGC"]
+    seq2 = ["ATGCATGCAAAA"]
+
+    expected_seq1 = ["ATGC"]
+    expected_seq2 = ["ATGC","ATGC","AAAA"]
+
+    clipped_seq1, clipped_seq2 = clip_sample_seqs(seq1,seq2)
+
+    assert expected_seq1 == clipped_seq1 and expected_seq2 == clipped_seq2, "clip_sample_seqs returned different values than expected!"
 
 def test_fit():
     """
