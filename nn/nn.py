@@ -179,13 +179,8 @@ class NeuralNetwork:
             db_curr: ArrayLike
                 Partial derivative of loss function with respect to current layer bias matrix.
         """
-        #partial derivative of current activation matrix with respect to current layer linear transform matrix. dAL/dZ
-
-
         dW_curr = current_delta.T.dot(dZdW)
         db_curr = np.sum(current_delta,axis = 0,keepdims=True).T
-
-
         return dW_curr, db_curr
 
     def backprop(self, y: ArrayLike, y_hat: ArrayLike, cache: Dict[str, ArrayLike]):
@@ -239,24 +234,24 @@ class NeuralNetwork:
             Z_curr = cache["Z" + str(layer_idx)]
 
             # When backpropagating through the first layer (i.e the layer between the input and the first hidden layer neurons)
-            # there is no A(layer=0) because the input matrix does not go through an activation function. Instead,
-            #dZdW = X
-            #
+            # there is no A(0) because the input matrix does not go through an activation function. Instead,
+            #dZdW(1) = X for layer 1
             if layer_idx > 1:
                 dZdW = cache["A" + str(layer_idx - 1)]
             else:
                 dZdW = cache['X']
             activation_curr = self.arch[idx]['activation']
+            #derivative of current activation matrix with respect to current layer Z
             dAdZ = self._activation_function_backprop(Z_curr, activation_curr)
 
-            #if on the final layer in the network, calculate dJdA and dAdZ
+            #if on the final layer in the network (i.e, the first layer during backprop), calculate dJdA and delta
             if layer_idx == len(self.arch):
                 dJdA = self._loss_function_backprop(y,y_hat)
                 delta = np.multiply(dJdA,dAdZ)
                 dW_curr, db_curr = self._single_backprop(dZdW,delta)
 
             else:
-
+                #if on any layer besides the final layer,
                 #Get backpropagation delta for current layer by matrix multiplying
                 #previously calculated delta with W from layer + 1, and element-wise multiplying result
                 #with derivative of current activation matrix with respect to current linear transformed matrix
@@ -280,6 +275,7 @@ class NeuralNetwork:
         Returns:
             None
         """
+        #update each weight and bias term in self._param_dict by subtrating gradient multiplied by learning rate
         for param in self._param_dict.keys():
             self._param_dict[param] = self._param_dict[param] - self._lr * grad_dict["d" + param]
 
@@ -327,15 +323,14 @@ class NeuralNetwork:
             X_batch = np.array_split(X_train, num_batches)
             y_batch = np.array_split(y_train, num_batches)
 
-            #Iterate through each batch until all batches in epoch
+            #Iterate through each batch until all batches in epoch have been used to calculate gradient
             batch_train_loss = []
             batch_val_loss = []
             for X_batch_train, y_batch_train in zip(X_batch, y_batch):
                 y_hat, cache = self.forward(X_batch_train) #get prediction with training data from this batch
                 batch_train_loss.append(self._loss_function(y_batch_train,y_hat)) #save training loss from this batch
-                grad_dict = self.backprop(y_batch_train,y_hat,cache) #get partial derivative of loss with respect to each weight and bias term
-                self._update_params(grad_dict) #update weights and biases
-
+                grad_dict = self.backprop(y_batch_train,y_hat,cache) #get partial derivative of loss with respect to each weight and bias term for this batch
+                self._update_params(grad_dict) #update weights and biases using gradient calculated with this batch
 
                 y_hat, _ = self.forward(X_val) #get prediction with validation data
                 batch_val_loss.append(self._loss_function(y_val, y_hat)) #store validation loss
@@ -348,7 +343,7 @@ class NeuralNetwork:
 
     def predict(self, X: ArrayLike) -> ArrayLike:
         """
-        This function returns the prediction of the neural network model.
+        This function returns the prediction of the trained neural network model.
 
         Args:
             X: ArrayLike
@@ -420,6 +415,7 @@ class NeuralNetwork:
             dZ: ArrayLike
                 Partial derivative of current layer Z matrix.
         """
+        #if value <0 return 0. If value >0 return 1
         conditions = [Z < 0, Z > 0]
         choicelist = [0, 1]
         return np.select(conditions, choicelist)
@@ -458,9 +454,12 @@ class NeuralNetwork:
             nl_transform: ArrayLike
                 Activation function output.
         """
+        #first check the activation function being called is supported
         viable_activations = ["SIGMOID", "RELU"]
         assert activation.upper() in ["SIGMOID",
                                       "RELU"], f"Desired activation function {activation.upper()} must be one of {viable_activations}"
+
+        #return proper activation function result depending on what was requested
         if activation.upper() == "SIGMOID":
             return self._sigmoid(Z)
         elif activation.upper() == "RELU":
