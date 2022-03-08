@@ -524,7 +524,7 @@ class NeuralNetwork:
         """
 
         #multiply by 0.5 so derivative is simpler
-        return 0.5* np.mean((y_hat - y)**2)
+        return 0.5* np.mean((y_hat - y)**2) #scalar
 
     def _mean_squared_error_backprop(self, y: ArrayLike, y_hat: ArrayLike) -> ArrayLike:
         """
@@ -543,7 +543,7 @@ class NeuralNetwork:
         # not taking sum here as this derivative will be matrix multiplied to dZcurr/dWcurr
         # which takes care of the summation across observations
         #but dividing by len(y) so the summation via matrix multiplication becomes a mean
-        return (y_hat - y) /y.size
+        return (y_hat - y) /y.size #same shape as y or yhat
 
     def _loss_function(self, y: ArrayLike, y_hat: ArrayLike) -> float:
         """
@@ -558,7 +558,7 @@ class NeuralNetwork:
             loss: float
                 Average loss of mini-batch.
         """
-
+        #return loss function defined in the NN instantiation
         if "cross_entropy" in self._loss_func:
             return self._binary_cross_entropy(y, y_hat)
         elif "mean_squared_error" == self._loss_func:
@@ -575,6 +575,7 @@ class NeuralNetwork:
             dA (array-like): partial derivative of loss with respect
                 to output matrix.
         """
+        #return backprop value for loss function defined in NN instantiation
         if "cross_entropy" in self._loss_func:
             return self._binary_cross_entropy_backprop(y, y_hat)
         elif "mean_squared_error" == self._loss_func:
