@@ -542,7 +542,7 @@ class NeuralNetwork:
         # not taking sum here as this derivative will be matrix multiplied to dZcurr/dWcurr
         # which takes care of the summation across observations
         #but dividing by len(y) so the summation via matrix multiplication becomes a mean
-        return (y_hat - y) /len(y)
+        return (y_hat - y) /y.size
 
     def _loss_function(self, y: ArrayLike, y_hat: ArrayLike) -> float:
         """
