@@ -44,7 +44,7 @@ def one_hot_encode_seqs(seq_arr: List[str]) -> ArrayLike:
         shape = (len(seq), 4)
         one_hot_matrix = np.zeros(shape)  # initialize matrix filled with 0s. 4 columns and one row per nucleotide in the sequence
         for row, nucleotide in enumerate(seq):
-            one_hot_matrix[row, AA_map[nucleotide]] = 1
+            one_hot_matrix[row, AA_map[nucleotide]] = 1 #replace 0 with 1 to produce a one hot encoding for each AA in sequence
         one_hot_encodings.append(one_hot_matrix.flatten())
     return one_hot_encodings
 
@@ -54,8 +54,8 @@ def clip_sample_seqs(
         neg_seqs: List[str])-> Tuple[List[str], List[str]]:
     """
     Takes two lists of sequences, where the sequences in list A are longer
-    than those in list B. This function will clip the sequences in list A to more smaller sequences
-    of the same size as in list B
+    than those in list B. This function will clip the sequences in list A to many smaller sequences
+    each of the same size as in list B
     Args:
         pos_seqs: List[str]
             List of sequences from the positive class
@@ -73,14 +73,19 @@ def clip_sample_seqs(
     len_pos_seqs = len(pos_seqs[0]) #return length of first element in pos_seqs. Assume rest of elements are same length
     len_neg_seqs = len(neg_seqs[0]) #return length of first element in neg_seqs. Assume rest of elements are same length
 
-
+    # if neg_seqs are each longer than any of the pos_seqs, clip the neg seqs to produce many tiny
+    # chunks of each neg seq, where each chunk is the same length as a pos seq. Any extra chunks
+    #that are of the wrong length will be discarded
     if len_pos_seqs < len_neg_seqs:
         clipped_neg_seqs = []
         for neg_seq in neg_seqs:
+            #clip/chunk the longer neg seq into many chunks each of the same size as any of the pos seqs
             clipped_seq = [neg_seq[i:i + len_pos_seqs] for i in range(0, len(neg_seq), len_pos_seqs)]
             clipped_neg_seqs.append([x for x in clipped_seq if len(x) ==len_pos_seqs ])
         flat_clipped_neg_seqs = [item for sublist in clipped_neg_seqs for item in sublist] #flatten list
         return pos_seqs, flat_clipped_neg_seqs
+
+    #same process, but if pos_seqs are longer than neg_seqs
     else:
         clipped_pos_seqs = []
         for pos_seq in pos_seqs:
@@ -94,8 +99,8 @@ def sample_seqs(
         labels: List[bool],
         random_state: int) -> Tuple[List[str], List[bool]]:
     """
-    This function should sample your sequences to account for class imbalance. 
-    Consider this as a sampling scheme with replacement.
+    This function upsamples the minority class, re-sampling the sequences in the minority class with replacement
+    as many times as necessary to achieve a 50-50 split between each class. Nothing is done to the majority class.
     
     Args:
         seqs: List[str]
@@ -113,7 +118,7 @@ def sample_seqs(
     """
     #get
 
-    np.random.seed(random_state)
+    np.random.seed(random_state) #for upsampling reproducibility
     pos_class_indices = np.where(labels)[0]
     neg_class_indices = np.where(~np.array(labels))[0]
     desired_class_size = abs(len(labels) - sum(labels))
