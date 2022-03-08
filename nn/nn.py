@@ -140,11 +140,13 @@ class NeuralNetwork:
         for idx in range(len(self.arch)):
             layer_idx = idx + 1
 
-            # use X as input layer
+            # use X instead of activation matrix for the first/input layer, as X is dZ/dW1
             if layer_idx == 1:
                 A_prev = X
             else:
+                # For all other layers, A(L-1) is dZ/dW(L)
                 A_prev = A_curr
+            #do forward pass through this layer
             A_curr, Z_curr = self._single_forward(W_curr=self._param_dict['W' + str(layer_idx)],
                                                   b_curr=self._param_dict['b' + str(layer_idx)],
                                                   A_prev=A_prev,
