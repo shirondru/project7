@@ -1,6 +1,6 @@
 # Project 7
 
-HTMLs of the two notebooks are included in this repo to show results without the computation.
+### HTMLs of the two notebooks are included in this repo to show results without the computation. Download the HTML and open in your browser to view.
 
 Fully Connected Neural Network
 
